@@ -2,9 +2,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import AuthService from '@/services/AuthService'
 import axios, { type AxiosResponse } from 'axios'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 function LoginForm (): JSX.Element {
+  const navigate = useNavigate()
+
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     const form = new FormData(e.currentTarget)
@@ -13,8 +16,8 @@ function LoginForm (): JSX.Element {
 
     try {
       await AuthService.login(email, password).then((res: AxiosResponse['data']) => {
-        console.log(typeof res)
         toast.success(res.message as string)
+        navigate('/main')
       })
     } catch (error) {
       if (axios.isAxiosError(error)) {
