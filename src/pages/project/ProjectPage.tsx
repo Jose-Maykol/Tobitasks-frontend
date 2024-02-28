@@ -1,4 +1,5 @@
 import { Kanban } from 'lucide-react'
+import TaskBoardContainer from './TaskBoardContainer'
 
 function ProjectPage (): JSX.Element {
   const backgroundStyle = {
@@ -33,6 +34,9 @@ function ProjectPage (): JSX.Element {
             Creado <br /> <span className='font-medium text-neutral-800'>22 de Febrero, 2024</span>
           </p>
         </div>
+      </div>
+      <div className='py-4'>
+        <TaskBoardContainer />
       </div>
     </section>
   )
