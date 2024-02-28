@@ -27,15 +27,15 @@ function SideBarAccordionElement (
       {isOpen && isOpenAccordion && (
         <div>
           <ul className='space-y-1'>
-            <NavLink to='/project/1' className='flex flex-row items-center font-medium p-2 rounded-sm hover:bg-neutral-300'>
+            <NavLink to='/project/65dec4968704eee9d0a6a448' className='flex flex-row items-center font-medium p-2 rounded-sm hover:bg-neutral-300'>
               <li className='flex flex-row text-sm items-center font-medium px-2 rounded-sm hover:bg-neutral-300'>
-                <span className='bg-green-500 rounded-sm w-2 h-2 mr-2'/>
+                <span className='bg-green-500 rounded-sm w-4 h-4 mr-2'/>
                 <h3 className='truncate w-40'>Proyecto 1</h3>
               </li>
             </NavLink>
-            <NavLink to='/project/2' className='flex flex-row items-center font-medium p-2 rounded-sm hover:bg-neutral-300'>
+            <NavLink to='/project/65dec4968704eee9d0a6a448' className='flex flex-row items-center font-medium p-2 rounded-sm hover:bg-neutral-300'>
               <li className='flex flex-row text-sm items-center font-medium px-2 rounded-sm hover:bg-neutral-300'>
-                <span className='bg-amber-500 rounded-sm w-2 h-2 mr-2'/>
+                <span className='bg-amber-500 rounded-sm w-4 h-4 mr-2'/>
                 <h3 className='truncate w-40'>Proyecto 2 dsadasdasdasdasdasdasdasdasd</h3>
               </li>
             </NavLink>

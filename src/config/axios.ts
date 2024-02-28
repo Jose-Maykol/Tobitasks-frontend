@@ -18,7 +18,7 @@ api.interceptors.response.use((response) => {
 })
 
 api.interceptors.request.use((config) => {
-  const accessToken = Cookies.get('accessToken')
+  const accessToken = Cookies.get('token')
 
   const newConfig = { ...config }
   newConfig.url = `${API_URL}${config.url}`

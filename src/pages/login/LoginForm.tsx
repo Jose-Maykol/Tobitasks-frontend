@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import AuthService from '@/services/AuthService'
 import axios, { type AxiosResponse } from 'axios'
+import Cookies from 'js-cookie'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -17,6 +18,7 @@ function LoginForm (): JSX.Element {
     try {
       await AuthService.login(email, password).then((res: AxiosResponse['data']) => {
         toast.success(res.message as string)
+        Cookies.set('token', res.token as string, { expires: 7 })
         navigate('/main')
       })
     } catch (error) {
