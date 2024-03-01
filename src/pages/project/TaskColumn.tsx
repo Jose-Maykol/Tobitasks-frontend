@@ -1,15 +1,22 @@
-import { useSortable } from '@dnd-kit/sortable'
+import { type Task } from '@/types/Task'
+import { SortableContext, useSortable } from '@dnd-kit/sortable'
+import TaskCard from './TaskCard'
 
 interface TaskColumnProps {
   id: string
-  children?: React.ReactNode
   stateText: string
+  tasks: Task[]
 }
 
 function TaskColumn (
-  { id, children, stateText }: TaskColumnProps
+  { id, stateText, tasks }: TaskColumnProps
 ): JSX.Element {
-  const { attributes, listeners, setNodeRef, isOver } = useSortable({ id })
+  const { attributes, listeners, setNodeRef, isOver } = useSortable({
+    id,
+    data: {
+      type: 'Status'
+    }
+  })
 
   return (
     <div className='w-80 h-[350px]'>
@@ -22,7 +29,11 @@ function TaskColumn (
         {...listeners}
         className={`w-80 h-full rounded-sm space-y-4 ${isOver ? 'bg-neutral-100' : null}`}
       >
-        {children}
+        <SortableContext items={tasks.map(task => task.id)}>
+          {tasks.map(task => (
+            <TaskCard key={task.id} id={task.id} />
+          ))}
+        </SortableContext>
       </div>
     </div>
   )

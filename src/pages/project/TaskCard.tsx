@@ -1,4 +1,5 @@
-import { useDraggable } from '@dnd-kit/core'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 interface TaskCardProps {
   id: string
@@ -7,7 +8,25 @@ interface TaskCardProps {
 function TaskCard (
   { id }: TaskCardProps
 ): JSX.Element {
-  const { attributes, listeners, setNodeRef } = useDraggable({ id })
+  const { attributes, listeners, setNodeRef, isDragging, transition, transform } = useSortable({
+    id,
+    data: {
+      type: 'Task'
+    }
+  })
+
+  const style = {
+    transition,
+    transform: CSS.Transform.toString(transform)
+  }
+
+  if (isDragging) {
+    return (
+      <div ref={setNodeRef} style={style} className='w-80 h-36 rounded-sm bg-neutral-200'>
+
+      </div>
+    )
+  }
 
   return (
     <div

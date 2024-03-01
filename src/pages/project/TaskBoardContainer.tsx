@@ -1,73 +1,121 @@
-import { DndContext, type DragStartEvent, type DragEndEvent, DragOverlay } from '@dnd-kit/core'
+import { DndContext, type DragStartEvent, type DragEndEvent, DragOverlay, closestCorners, useSensors, useSensor, PointerSensor } from '@dnd-kit/core'
 import TaskColumn from './TaskColumn'
 import TaskCard from './TaskCard'
-import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
+import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable'
 import { useState } from 'react'
+import { type Task } from '@/types/Task'
+import { type Status } from '@/types/Status'
 
 function TaskBoardContainer (): JSX.Element {
-  const initialItems = [
+  const inititalTasks: Task[] = [
     { id: 'card-1', state: 'column-1' },
     { id: 'card-2', state: 'column-2' },
-    { id: 'card-3', state: 'column-3' }
+    { id: 'card-3', state: 'column-3' },
+    { id: 'card-4', state: 'column-1' },
+    { id: 'card-5', state: 'column-2' },
+    { id: 'card-6', state: 'column-3' }
   ]
 
-  const statuses = [
-    { id: 'column-1', text: 'To Do' },
-    { id: 'column-2', text: 'In Progress' },
-    { id: 'column-3', text: 'Done' }
+  const statuses: Status[] = [
+    { id: 'column-1', name: 'To Do' },
+    { id: 'column-2', name: 'In Progress' },
+    { id: 'column-3', name: 'Done' }
   ]
 
-  const [items, setItems] = useState(initialItems)
-  const [activeItem, setActiveItem] = useState<{ id: string } | undefined>()
+  const [tasks, setTasks] = useState<Task[]>(inititalTasks)
+  const [activeTask, setActiveTask] = useState< Task | undefined>()
 
   const handleDragStart = (event: DragStartEvent): void => {
     const { active } = event
-    setActiveItem(items.find(item => item.id === active.id))
+    setActiveTask(tasks.find(item => item.id === active.id))
   }
 
   const handleDragEnd = (event: DragEndEvent): void => {
+    setActiveTask(undefined)
+
     const { active, over } = event
-    if (over == null) return
+    if (over === null) return
 
-    setItems(prevItems => {
-      const updatedItems = [...prevItems]
-      const activeIndex = prevItems.findIndex(item => item.id === active.id)
-      const overIndex = prevItems.findIndex(item => item.state === over.id)
+    const activeId = active.id
+    const overId = over.id
 
-      updatedItems[activeIndex] = { ...updatedItems[activeIndex], state: over.id as string }
+    if (activeId === overId) return
 
-      console.log('updatedItems', updatedItems)
-
-      const draggedItem = updatedItems.splice(activeIndex, 1)[0]
-      updatedItems.splice(overIndex, 0, draggedItem)
-
-      return updatedItems
-    })
+    setActiveTask(undefined)
   }
 
   const handleDragCancel = (): void => {
-    setActiveItem(undefined)
+    setActiveTask(undefined)
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10
+      }
+    })
+  )
+
+  const handleDragOver = (event: DragEndEvent): Task[] | undefined => {
+    const { active, over } = event
+    if (over == null) return
+
+    const activeId = active.id
+    const overId = over.id
+
+    if (activeId === overId) return
+
+    const isActiveTask = active.data.current?.type === 'Task'
+    const isOverTask = over.data.current?.type === 'Task'
+
+    if (!isActiveTask) return
+
+    if (isActiveTask && isOverTask) {
+      setTasks(tasks => {
+        const overIndex = tasks.findIndex(task => task.id === overId)
+        const activeIndex = tasks.findIndex(task => task.id === activeId)
+        if (tasks[activeIndex].state !== tasks[overIndex].state) {
+          tasks[activeIndex].state = tasks[overIndex].state
+          return arrayMove(tasks, activeIndex, overIndex - 1)
+        }
+        return arrayMove(tasks, activeIndex, overIndex)
+      })
+    }
+
+    const isOverColumn = over.data.current?.type === 'Status'
+
+    if (isActiveTask && isOverColumn) {
+      setTasks(tasks => {
+        const activeIndex = tasks.findIndex(task => task.id === activeId)
+        const overIndex = tasks.findIndex(task => task.state === overId)
+        tasks[activeIndex].state = overId as string
+        return arrayMove(tasks, activeIndex, overIndex)
+      })
+    }
   }
 
   return (
     <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
       onDragCancel={handleDragCancel}
     >
       <div className='flex flex-row justify-start gap-4'>
         {statuses.map(status => (
-          <SortableContext items={items.map(item => item.id)} strategy={rectSortingStrategy} key={status.id}>
-            <TaskColumn key={status.id} id={status.id} stateText={status.text}>
-              {items.map(item => (
-                item.state === status.id ? <TaskCard key={item.id} id={item.id} /> : null
-              ))}
-            </TaskColumn>
+          <SortableContext items={tasks.map(item => item.id)} strategy={rectSortingStrategy} key={status.id}>
+            <TaskColumn
+              id={status.id}
+              stateText={status.name}
+              tasks={tasks.filter(task => task.state === status.id)}
+            />
           </SortableContext>
         ))}
       </div>
       <DragOverlay>
-        {(activeItem !== undefined) ? <TaskCard id={activeItem.id} /> : null}
+        {(activeTask !== undefined) ? <TaskCard id={activeTask.id} /> : null}
       </DragOverlay>
     </DndContext>
   )
