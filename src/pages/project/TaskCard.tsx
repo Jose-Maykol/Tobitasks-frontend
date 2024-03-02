@@ -22,9 +22,7 @@ function TaskCard (
 
   if (isDragging) {
     return (
-      <div ref={setNodeRef} style={style} className='w-80 h-36 rounded-sm bg-neutral-200'>
-
-      </div>
+      <div ref={setNodeRef} style={style} className='w-80 h-36 rounded-sm bg-neutral-200'/>
     )
   }
 
