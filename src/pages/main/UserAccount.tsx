@@ -28,7 +28,7 @@ function UserAccount (
           </div>
         </div>
       </PopoverTrigger>
-      <PopoverContent side='right' className='w-50 ml-2 mb-4 p-2'>
+      <PopoverContent side='right' className={`w-50 mb-4 p-2 ${isOpen ? 'ml-8' : 'ml-2'}`}>
         <div className='flex flex-col items-start'>
           <Button className='bg-white text-black w-full justify-start hover:bg-neutral-200'>
             <User size={20} className='mr-2'/>

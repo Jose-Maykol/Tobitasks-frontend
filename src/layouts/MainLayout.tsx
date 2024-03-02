@@ -3,9 +3,9 @@ import { Outlet } from 'react-router-dom'
 
 function MainLayout (): JSX.Element {
   return (
-    <div className='flex flex-row w-full h-screen'>
+    <div className='flex flex-row w-full h-screen max-h-screen'>
       <SideBar />
-      <div className='flex-1 flex-shrink-0 p-6'>
+      <div className='flex-1 flex-shrink-0 p-6 overflow-y-scroll mb-6'>
         <Outlet />
       </div>
     </div>
