@@ -1,8 +1,8 @@
 import { CheckCircle, Home, Menu } from 'lucide-react'
 import SideBarItem from './SidebarItem'
-import SideBarAccordionElement from './SideBarAccordionElement'
 import { useState } from 'react'
 import UserAccount from './UserAccount'
+import ProjectsSidebar from './ProjectsSidebar'
 
 function SideBar (): JSX.Element {
   const [isOpen, setIsOpen] = useState(true)
@@ -22,7 +22,7 @@ function SideBar (): JSX.Element {
           <ul className='space-y-2'>
             <SideBarItem to='/main' icon={<Home size={20}/>} text='Inicio' isOpen={isOpen} />
             <SideBarItem to='/my-tasks' icon={<CheckCircle size={20}/>} text='Mis tareas' isOpen={isOpen}/>
-            <SideBarAccordionElement isOpen={isOpen}/>
+            <ProjectsSidebar isOpen={isOpen}/>
           </ul>
         </div>
       </div>

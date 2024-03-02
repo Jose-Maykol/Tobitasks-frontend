@@ -1,13 +1,19 @@
 import { ChevronDown, KanbanSquare } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import CreateProjectDialog from './CreateProjectDialog'
 
 interface SideBarAccordionElementProps {
   isOpen: boolean
+  data: Array<{
+    id: string
+    name: string
+    color: string
+  }>
 }
 
 function SideBarAccordionElement (
-  { isOpen }: SideBarAccordionElementProps
+  { isOpen, data }: SideBarAccordionElementProps
 ): JSX.Element {
   const [isOpenAccordion, setIsOpen] = useState(isOpen)
 
@@ -25,21 +31,18 @@ function SideBarAccordionElement (
         <ChevronDown size={20} className={`transform transition-transform duration-300 ${isOpen ? 'block' : 'hidden'}`} style={{ transform: isOpenAccordion ? 'rotate(180deg)' : 'rotate(0deg)' }} />
       </div>
       {isOpen && isOpenAccordion && (
-        <div>
+        <div className='flex flex-col'>
           <ul className='space-y-1'>
-            <NavLink to='/project/65dec4968704eee9d0a6a448' className='flex flex-row items-center font-medium p-2 rounded-sm hover:bg-neutral-300'>
+            {data?.map((item: { id: string, name: string, color: string }) => (
               <li className='flex flex-row text-sm items-center font-medium px-2 rounded-sm hover:bg-neutral-300'>
-                <span className='bg-green-500 rounded-sm w-4 h-4 mr-2'/>
-                <h3 className='truncate w-40'>Proyecto 1</h3>
+                <NavLink to={`/project/${item.id}`} className='flex flex-row items-center font-medium p-2 rounded-sm hover:bg-neutral-300' key={item.id}>
+                  <span className={`bg-${item.color} rounded-sm w-4 h-4 mr-2`}/>
+                  <h3 className='truncate w-40'>{item.name}</h3>
+                </NavLink>
               </li>
-            </NavLink>
-            <NavLink to='/project/65dec4968704eee9d0a6a448' className='flex flex-row items-center font-medium p-2 rounded-sm hover:bg-neutral-300'>
-              <li className='flex flex-row text-sm items-center font-medium px-2 rounded-sm hover:bg-neutral-300'>
-                <span className='bg-amber-500 rounded-sm w-4 h-4 mr-2'/>
-                <h3 className='truncate w-40'>Proyecto 2 dsadasdasdasdasdasdasdasdasd</h3>
-              </li>
-            </NavLink>
+            ))}
           </ul>
+          <CreateProjectDialog />
         </div>
       )}
     </li>
