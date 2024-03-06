@@ -11,10 +11,10 @@ function SideBarItem (
   { to, icon, text, isOpen }: SideBarItemProps
 ): JSX.Element {
   return (
-    <li className={`text-sm font-medium rounded-sm hover:bg-neutral-300 ${isOpen || 'mx-2'}`}>
+    <li className={`text-sm font-medium rounded-sm ${isOpen || 'mx-2'}`}>
       <NavLink
         to={to}
-        className={({ isActive }) => `p-2 rounded-sm flex flex-row items-center ${isActive ? 'font-bold text-purple-600 bg-purple-300' : ''} ${isOpen || 'justify-center'}`}
+        className={({ isActive }) => `hover:bg-neutral-200 p-2 rounded-sm flex flex-row items-center ${isActive ? 'font-bold bg-neutral-300' : ''} ${isOpen || 'justify-center'}`}
       >
         {icon}
         <span className={`ml-2 ${isOpen ? 'block' : 'hidden'}`}>{text}</span>

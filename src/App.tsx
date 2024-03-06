@@ -6,6 +6,9 @@ import MainPage from './pages/main/MainPage'
 import MainLayout from './layouts/MainLayout'
 import MyTaskPage from './pages/myTasks/MyTasksPage'
 import ProjectPage from './pages/project/ProjectPage'
+import { QueryClient, QueryClientProvider } from 'react-query'
+
+const queryClient = new QueryClient()
 
 const router = createBrowserRouter([
   {
@@ -41,10 +44,10 @@ const router = createBrowserRouter([
 
 function App (): JSX.Element {
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <Toaster richColors/>
       <RouterProvider router={router} />
-    </>
+    </QueryClientProvider>
   )
 }
 
