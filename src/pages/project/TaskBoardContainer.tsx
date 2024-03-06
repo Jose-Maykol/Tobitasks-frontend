@@ -2,28 +2,60 @@ import { DndContext, type DragStartEvent, type DragEndEvent, DragOverlay, closes
 import TaskColumn from './TaskColumn'
 import TaskCard from './TaskCard'
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { type Task } from '@/types/Task'
 import { type Status } from '@/types/Status'
+import { socket } from '@/socket'
+import { useParams } from 'react-router-dom'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 
 function TaskBoardContainer (): JSX.Element {
-  const inititalTasks: Task[] = [
-    { id: 'card-1', state: 'column-1' },
-    { id: 'card-2', state: 'column-2' },
-    { id: 'card-3', state: 'column-3' },
-    { id: 'card-4', state: 'column-1' },
-    { id: 'card-5', state: 'column-2' },
-    { id: 'card-6', state: 'column-3' }
-  ]
+  const params = useParams()
+  const { id } = params
+
+  // TODO: Fetch statuses from socket
 
   const statuses: Status[] = [
-    { id: 'column-1', name: 'To Do' },
-    { id: 'column-2', name: 'In Progress' },
-    { id: 'column-3', name: 'Done' }
+    { id: '65dd1ac5657aff113d451767', name: 'En planificación' },
+    { id: '65dd1ac5657aff113d451768', name: 'En desarrollo' },
+    { id: '5dd1ac5657aff113d451769', name: 'En pruebas' },
+    { id: '65dd1ac5657aff113d45176a', name: 'Finalizado' }
   ]
 
-  const [tasks, setTasks] = useState<Task[]>(inititalTasks)
+  const [tasks, setTasks] = useState<Task[]>([])
   const [activeTask, setActiveTask] = useState< Task | undefined>()
+  const [isConnected, setIsConnected] = useState(socket.connected)
+
+  useEffect(() => {
+    socket.io.opts.query = { projectId: id }
+
+    socket.emit('task')
+
+    socket.on('connect', () => {
+      setIsConnected(true)
+    })
+
+    socket.on('disconnect', () => {
+      setIsConnected(false)
+    })
+
+    socket.connect()
+
+    socket.on('task', (data) => {
+      console.log('tasks', data.tasks as Task[])
+      const projectTasks: Task[] = data.tasks
+      setTasks(projectTasks)
+    })
+
+    socket.on('status', (data) => {
+      console.log('statuses', data.statuses as Status[])
+    })
+
+    return () => {
+      socket.off('connect')
+      socket.off('disconnect')
+    }
+  }, [id])
 
   const handleDragStart = (event: DragStartEvent): void => {
     const { active } = event
@@ -74,8 +106,8 @@ function TaskBoardContainer (): JSX.Element {
       setTasks(tasks => {
         const overIndex = tasks.findIndex(task => task.id === overId)
         const activeIndex = tasks.findIndex(task => task.id === activeId)
-        if (tasks[activeIndex].state !== tasks[overIndex].state) {
-          tasks[activeIndex].state = tasks[overIndex].state
+        if (tasks[activeIndex].status !== tasks[overIndex].status) {
+          tasks[activeIndex].status = tasks[overIndex].status
           return arrayMove(tasks, activeIndex, overIndex - 1)
         }
         return arrayMove(tasks, activeIndex, overIndex)
@@ -87,11 +119,15 @@ function TaskBoardContainer (): JSX.Element {
     if (isActiveTask && isOverColumn) {
       setTasks(tasks => {
         const activeIndex = tasks.findIndex(task => task.id === activeId)
-        const overIndex = tasks.findIndex(task => task.state === overId)
-        tasks[activeIndex].state = overId as string
+        const overIndex = tasks.findIndex(task => task.status === overId)
+        tasks[activeIndex].status = overId as string
         return arrayMove(tasks, activeIndex, overIndex)
       })
     }
+  }
+
+  if (!isConnected) {
+    return <div>Connecting...</div>
   }
 
   return (
@@ -103,17 +139,20 @@ function TaskBoardContainer (): JSX.Element {
       onDragOver={handleDragOver}
       onDragCancel={handleDragCancel}
     >
-      <div className='flex flex-row justify-start gap-4'>
-        {statuses.map(status => (
-          <SortableContext items={tasks.map(item => item.id)} strategy={rectSortingStrategy} key={status.id}>
-            <TaskColumn
-              id={status.id}
-              stateText={status.name}
-              tasks={tasks.filter(task => task.state === status.id)}
-            />
-          </SortableContext>
-        ))}
-      </div>
+      <ScrollArea className='w-full whitespace-nowrap h-[700px]'>
+        <div className='flex flex-row justify-start gap-4'>
+          {statuses.map(status => (
+            <SortableContext items={tasks.map(item => item.id)} strategy={rectSortingStrategy} key={status.id}>
+              <TaskColumn
+                id={status.id}
+                stateText={status.name}
+                tasks={tasks.filter(task => task.status === status.id)}
+                />
+            </SortableContext>
+          ))}
+        </div>
+        <ScrollBar orientation='horizontal'/>
+      </ScrollArea>
       <DragOverlay>
         {(activeTask !== undefined) ? <TaskCard id={activeTask.id} /> : null}
       </DragOverlay>

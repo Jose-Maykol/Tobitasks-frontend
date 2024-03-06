@@ -1,4 +1,8 @@
 export interface Task {
   id: string
-  state: string
+  title: string
+  description: string
+  status: string
+  category: string
+  difficulty: string
 }
