@@ -33,7 +33,7 @@ function TaskColumn (
         >
           <SortableContext items={tasks.map(task => task.id)}>
             {tasks.map(task => (
-              <TaskCard key={task.id} id={task.id} />
+              <TaskCard key={task.id} task={task} />
             ))}
           </SortableContext>
         </div>

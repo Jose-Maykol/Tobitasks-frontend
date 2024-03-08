@@ -8,23 +8,20 @@ import { type Status } from '@/types/Status'
 import { socket } from '@/socket'
 import { useParams } from 'react-router-dom'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import useStatusStore from '@/stores/useStatusStore'
+import useCategoryStore from '@/stores/useCategoryStore'
+import { type Category } from '@/types/Category'
 
 function TaskBoardContainer (): JSX.Element {
   const params = useParams()
   const { id } = params
 
-  // TODO: Fetch statuses from socket
-
-  const statuses: Status[] = [
-    { id: '65dd1ac5657aff113d451767', name: 'En planificación' },
-    { id: '65dd1ac5657aff113d451768', name: 'En desarrollo' },
-    { id: '5dd1ac5657aff113d451769', name: 'En pruebas' },
-    { id: '65dd1ac5657aff113d45176a', name: 'Finalizado' }
-  ]
-
   const [tasks, setTasks] = useState<Task[]>([])
   const [activeTask, setActiveTask] = useState< Task | undefined>()
   const [isConnected, setIsConnected] = useState(socket.connected)
+
+  const { statuses, setStatuses } = useStatusStore()
+  const { setCategories } = useCategoryStore()
 
   useEffect(() => {
     socket.io.opts.query = { projectId: id }
@@ -42,43 +39,31 @@ function TaskBoardContainer (): JSX.Element {
     socket.connect()
 
     socket.on('task', (data) => {
-      console.log('tasks', data.tasks as Task[])
       const projectTasks: Task[] = data.tasks
       setTasks(projectTasks)
     })
 
     socket.on('status', (data) => {
-      console.log('statuses', data.statuses as Status[])
+      console.log('statuses', data.statuses)
+      setStatuses(data.statuses as Status[])
+    })
+
+    socket.on('category', (data) => {
+      console.log('categories', data.categories)
+      setCategories(data.categories as Category[])
+    })
+
+    socket.on('updateTask', (data) => {
+      const updatedTask = data.task
+      console.log('updateTask', updatedTask)
+      setTasks(tasks => tasks.map(task => task.id === updatedTask.id ? updatedTask : task))
     })
 
     return () => {
       socket.off('connect')
       socket.off('disconnect')
     }
-  }, [id])
-
-  const handleDragStart = (event: DragStartEvent): void => {
-    const { active } = event
-    setActiveTask(tasks.find(item => item.id === active.id))
-  }
-
-  const handleDragEnd = (event: DragEndEvent): void => {
-    setActiveTask(undefined)
-
-    const { active, over } = event
-    if (over === null) return
-
-    const activeId = active.id
-    const overId = over.id
-
-    if (activeId === overId) return
-
-    setActiveTask(undefined)
-  }
-
-  const handleDragCancel = (): void => {
-    setActiveTask(undefined)
-  }
+  }, [id, setStatuses, setCategories])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -87,6 +72,30 @@ function TaskBoardContainer (): JSX.Element {
       }
     })
   )
+
+  const handleDragStart = (event: DragStartEvent): void => {
+    const { active } = event
+    setActiveTask(tasks.find(item => item.id === active.id))
+  }
+
+  const handleDragCancel = (): void => {
+    setActiveTask(undefined)
+  }
+
+  const handleDragEnd = (event: DragEndEvent): void => {
+    const { active, over } = event
+    if (over === null) return
+
+    const activeId = active.id
+    const overId = over.id
+
+    // TODO: Emit changeTaskStatus only if the status has changed
+    socket.emit('changeTaskStatus', { taskId: activeTask?.id, statusId: activeTask?.status })
+
+    if (activeId === overId) return
+
+    setActiveTask(undefined)
+  }
 
   const handleDragOver = (event: DragEndEvent): Task[] | undefined => {
     const { active, over } = event
@@ -154,7 +163,7 @@ function TaskBoardContainer (): JSX.Element {
         <ScrollBar orientation='horizontal'/>
       </ScrollArea>
       <DragOverlay>
-        {(activeTask !== undefined) ? <TaskCard id={activeTask.id} /> : null}
+        {(activeTask !== undefined) ? <TaskCard task={activeTask} /> : null}
       </DragOverlay>
     </DndContext>
   )
