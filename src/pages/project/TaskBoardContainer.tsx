@@ -2,7 +2,7 @@ import { DndContext, type DragStartEvent, type DragEndEvent, DragOverlay, closes
 import TaskColumn from './TaskColumn'
 import TaskCard from './TaskCard'
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { type Task } from '@/types/Task'
 import { type Status } from '@/types/Status'
 import { socket } from '@/socket'
@@ -19,6 +19,7 @@ function TaskBoardContainer (): JSX.Element {
   const [tasks, setTasks] = useState<Task[]>([])
   const [activeTask, setActiveTask] = useState< Task | undefined>()
   const [isConnected, setIsConnected] = useState(socket.connected)
+  const draggedTaskRef = useRef<Task | undefined>(undefined)
 
   const { statuses, setStatuses } = useStatusStore()
   const { setCategories } = useCategoryStore()
@@ -75,7 +76,11 @@ function TaskBoardContainer (): JSX.Element {
 
   const handleDragStart = (event: DragStartEvent): void => {
     const { active } = event
-    setActiveTask(tasks.find(item => item.id === active.id))
+    const task = tasks.find(item => item.id === active.id)
+    setActiveTask(task)
+    if (task !== undefined) {
+      draggedTaskRef.current = { ...task }
+    }
   }
 
   const handleDragCancel = (): void => {
@@ -89,8 +94,14 @@ function TaskBoardContainer (): JSX.Element {
     const activeId = active.id
     const overId = over.id
 
-    // TODO: Emit changeTaskStatus only if the status has changed
-    socket.emit('changeTaskStatus', { taskId: activeTask?.id, statusId: activeTask?.status })
+    console.log('activeTask', activeTask)
+    console.log('draggedTaskRef', draggedTaskRef.current)
+
+    if (activeTask !== undefined && draggedTaskRef.current !== undefined) {
+      if (activeTask.status !== draggedTaskRef.current.status) {
+        socket.emit('changeTaskStatus', { taskId: activeTask.id, statusId: activeTask.status })
+      }
+    }
 
     if (activeId === overId) return
 
@@ -133,6 +144,8 @@ function TaskBoardContainer (): JSX.Element {
         return arrayMove(tasks, activeIndex, overIndex)
       })
     }
+
+    // TODO: save the new order of tasks in the database
   }
 
   if (!isConnected) {
